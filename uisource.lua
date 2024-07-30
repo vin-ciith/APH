@@ -394,12 +394,4 @@ RunService.RenderStepped:Connect(function()
     for Index, Player in pairs(Players:GetChildren()) do
         CreateChams(Player, Player.Character)
     end
-
-    for Index, Tracer in pairs(allTracers) do
-        if (Tracer[1] and not Tracer[2]) or not tracers then
-            Tracer[1]:Remove()
-        elseif not Tracer[1] then
-            table.remove(allTracers, Index)
-        end
-    end
 end)
