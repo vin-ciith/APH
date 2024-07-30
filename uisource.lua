@@ -233,30 +233,9 @@ function CreateChams(Character)
     if Player then
         local c
         c=Players.PlayerRemoving:Connect(function(p)
-            if p == Player then
-                ABORT = true
-                c:Disconnect()
-                if Tracer then
-                    for Index, TracerT in pairs(allTracers) do
-                        if TracerT[1] == Tracer then
-                            table.remove(allTracers, Index)
-                        end
-                    end
-                    Tracer.Visible = false
-                    Tracer:Remove()
-                    Tracer = nil
-                end
-                if NameTracer then
-                    for Index, TracerT in pairs(allTracers) do
-                        if TracerT[1] == NameTracer then
-                            table.remove(allTracers, Index)
-                        end
-                    end
-                    NameTracer.Visible = false
-                    NameTracer:Remove()
-                    NameTracer = nil
-                end
-            end
+            ABORT = true
+            Highlight:Destroy()
+            c:Disconnect()
         end)
     end
 
