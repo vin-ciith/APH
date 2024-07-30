@@ -9,9 +9,14 @@ local UserInputService = game:GetService("UserInputService")
 
 local FullBright = false
 
+local UseOtherESP = false
+
 if game.GameId == 372226183 then
     table.insert(Highlights, "ComputerTable")
     Enemy = "Hammer"
+elseif game.GameId == 3808081382 then
+    UseOtherESP = true
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/CriShoux/OwlHub/master/OwlHub.txt"))();
 end
 
 local TrueZoom = false
@@ -20,13 +25,15 @@ local TweenedZoomAMT = TrueZoomAMT
 
 loadstring(game:HttpGet("https://raw.githubusercontent.com/Exunys/Aimbot-V2/main/Resources/Scripts/Aimbot%20V2%20GUI.lua"))()
 
-local TracerEnabled = false
+local TracerEnabled = _G.TracerEnabled or 0
 local Lines = {}
 
 local Updating = {}
 
+local BodyParts = {'LeftFoot', 'LeftHand', 'LeftLowerArm', 'LeftLowerLeg', 'LeftUpperArm', 'LeftUpperLeg', 'LowerTorso', 'RightFoot', 'RightHand', 'RightLowerArm', 'RightLowerLeg', 'RightUpperLeg', 'RightUpperArm', 'UpperTorso', 'Head'}
+
 local function CreateHitbox(character, autoUpdate)
-    if autoUpdate and character ~= game.Players.LocalPlayer.Character then
+    if autoUpdate and character and character ~= game.Players.LocalPlayer.Character then
         if table.find(Updating, character) then return end
         table.insert(Updating, character)
         
@@ -35,7 +42,44 @@ local function CreateHitbox(character, autoUpdate)
 		Highlight.Parent = character
 		
 		local Tracer
+		local NameTracer
 		while character ~= nil and task.wait() do
+		    if UseOtherESP then
+		       for X,Z in pairs(character:GetChildren()) do
+                   if Z.ClassName == 'MeshPart' or Z.ClassName == 'Part' and table.find(BodyParts, Z.Name) then
+                       if Z:FindFirstChild("ImTheAlphaImTheLeaderImTheOneToTrust") then
+                           Z['ImTheAlphaImTheLeaderImTheOneToTrust'].Color3 = Highlight.FillColor
+                       else
+                           if Z.Name == 'Head' then
+                               local headha = Instance.new("CylinderHandleAdornment",Z)
+                               headha.Adornee = Z
+                               headha.Transparency = 0
+                               headha.AlwaysOnTop = true
+                               headha.Name = "ImTheAlphaImTheLeaderImTheOneToTrust"
+                               headha.ZIndex = 1
+                               headha.Color3 = Highlight.FillColor
+                               headha.Height = 1.3
+                           else
+                               local boxha = Instance.new("BoxHandleAdornment",Z)
+                               boxha.Adornee = Z
+                               boxha.Transparency = 0
+                               boxha.AlwaysOnTop = true
+                               boxha.Name = "ImTheAlphaImTheLeaderImTheOneToTrust"
+                               boxha.Size = Z.Size
+                               boxha.ZIndex = 1
+                               boxha.Color3 = Highlight.FillColor
+                           end
+                       end
+                   end
+               end 
+		    end
+		    
+		    if Highlight == nil or Highlight.Parent == nil then
+        		local Highlight = Instance.new("Highlight")
+        		Highlight.Name = "HitboxChams"
+        		Highlight.Parent = character
+		    end
+		    
     		if Enemy then
     		    if character:FindFirstChild(Enemy) then
     		        Highlight.FillColor = Color3.new(1, 0, 0)
@@ -60,7 +104,7 @@ local function CreateHitbox(character, autoUpdate)
     			end
     		end
     
-    		if TracerEnabled and character:FindFirstChild("HumanoidRootPart") then
+    		if TracerEnabled ~= 0 and TracerEnabled ~= 3 and character:FindFirstChild("HumanoidRootPart") then
     			local ScreenPos, OnScreen = workspace.CurrentCamera:WorldToScreenPoint(character.HumanoidRootPart.Position)
     			if OnScreen then
     			    if not Tracer then
@@ -76,16 +120,49 @@ local function CreateHitbox(character, autoUpdate)
             		   Tracer = nil
             		end
     			end
-    		elseif not TracerEnabled then
+    		elseif TracerEnabled == 0 or TracerEnabled == 3 then
         		if Tracer then
         		   Tracer:Remove()
         		   Tracer = nil
         		end
     		end
+    		
+    		if TracerEnabled >= 2 and character:FindFirstChild("HumanoidRootPart") then
+    			local ScreenPos, OnScreen = workspace.CurrentCamera:WorldToScreenPoint(character.HumanoidRootPart.Position)
+    			if OnScreen then
+    			    if not NameTracer then
+    			        NameTracer = Drawing.new("Text")
+    			    end
+    			    if Player then
+        			    NameTracer.Text = Player.DisplayName.." (@"..Player.Name..")"
+    			    else
+    			        NameTracer.Text = character.Name
+    			    end
+    				NameTracer.Visible = true
+    				NameTracer.Outline = true
+    				NameTracer.Position = Vector2.new(ScreenPos.X, ScreenPos.Y)
+    				NameTracer.OutlineColor = Color3.new(0, 0, 0)
+    			else
+            		if NameTracer then
+            		   NameTracer:Remove() 
+            		   NameTracer = nil
+            		end
+    			end
+    		elseif TracerEnabled <= 1 then
+        		if NameTracer then
+        		   NameTracer:Remove()
+        		   NameTracer = nil
+        		end
+    		end
 		end
+		
 		if Tracer then
 		    Tracer:Remove() 
             Tracer = nil
+		end
+		if NameTracer then
+		    NameTracer:Remove()
+		    NameTracer = nil
 		end
     elseif character and not character:FindFirstChild("HitboxChams") and character ~= game.Players.LocalPlayer.Character then
 		local Highlight = Instance.new("Highlight")
@@ -149,33 +226,50 @@ local function CreateHitbox(character, autoUpdate)
 	end
 end
 
+local function FBright()
+    if game.Lighting:FindFirstChildOfClass("DepthOfFieldEffect") then
+        game.Lighting:FindFirstChildOfClass("DepthOfFieldEffect"):Remove()
+    elseif workspace.CurrentCamera:FindFirstChildOfClass("DepthOfFieldEffect") then
+        workspace.CurrentCamera:FindFirstChildOfClass("DepthOfFieldEffect"):Remove()
+    end
+    if game.Lighting:FindFirstChildOfClass("BlurEffect") then
+        game.Lighting:FindFirstChildOfClass("BlurEffect"):Remove()
+    elseif workspace.CurrentCamera:FindFirstChildOfClass("BlurEffect") then
+        workspace.CurrentCamera:FindFirstChildOfClass("BlurEffect"):Remove()
+    end
+	game.Lighting.Ambient = Color3.new(0.5, 0.5, 0.5)
+	game.Lighting.OutdoorAmbient = Color3.new(0.5, 0.5, 0.5)
+	game.Lighting.Brightness = 3
+	game.Lighting.EnvironmentDiffuseScale = 1
+	game.Lighting.EnvironmentSpecularScale = 1
+	game.Lighting.GlobalShadows = false
+	if game.Lighting:FindFirstChild("Atmosphere") then
+		game.Lighting.Atmosphere:Remove()
+	else
+		game.Lighting.FogEnd = 1000000
+	end
+end
+
 UserInputService.InputBegan:Connect(function(input, processed)
 	if input.KeyCode == Enum.KeyCode.Equals then
-		TrueZoomAMT -= 5
+		TrueZoomAMT = TrueZoomAMT - 5
 	elseif input.KeyCode == Enum.KeyCode.Minus then
-		TrueZoomAMT += 5
+		TrueZoomAMT = TrueZoomAMT + 5
 	elseif input.KeyCode == Enum.KeyCode.F1 then
 		TrueZoom = not TrueZoom
 		if not TrueZoom then
 			workspace.CurrentCamera.FieldOfView = 70
 		end
 	elseif input.KeyCode == Enum.KeyCode.F2 then
-		TracerEnabled = not TracerEnabled
+		TracerEnabled = TracerEnabled + 1
+		if TracerEnabled == 4 then
+		   TracerEnabled = 0 
+		end
 	elseif input.KeyCode == Enum.KeyCode.F3  then
 		FullBright = not FullBright
     	if FullBright then
-    		game.Lighting.Ambient = Color3.new(0.5, 0.5, 0.5)
-    		game.Lighting.OutdoorAmbient = Color3.new(0.5, 0.5, 0.5)
-    		game.Lighting.Brightness = 3
-    		game.Lighting.EnvironmentDiffuseScale = 1
-    		game.Lighting.EnvironmentSpecularScale = 1
-    		game.Lighting.GlobalShadows = false
-    		if game.Lighting:FindFirstChild("Atmosphere") then
-    			game.Lighting.Atmosphere:Remove()
-    		else
-    			game.Lighting.FogEnd = 1000000
-    		end
-		end
+    	    FBright()
+    	end
 	end
 end)
 
@@ -220,16 +314,6 @@ end)
 
 game.Lighting.Changed:Connect(function()
 	if FullBright then
-		game.Lighting.Ambient = Color3.new(0.5, 0.5, 0.5)
-		game.Lighting.OutdoorAmbient = Color3.new(0.5, 0.5, 0.5)
-		game.Lighting.Brightness = 3
-		game.Lighting.EnvironmentDiffuseScale = 1
-		game.Lighting.EnvironmentSpecularScale = 1
-		game.Lighting.GlobalShadows = false
-		if game.Lighting:FindFirstChild("Atmosphere") then
-			game.Lighting.Atmosphere:Remove()
-		else
-			game.Lighting.FogEnd = 1000000
-		end
+	    FBright()
 	end
 end)
