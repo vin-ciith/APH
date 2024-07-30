@@ -41,7 +41,7 @@ window.outline.Size = UDim2.new(0, 600, 0, 400)
 local tab = window:page({name = "Main"})
 
 local section1 = tab:section({name = "Aimbot",side = "left",size = 200})
-local section2 = tab:section({name = "ESP",side = "right",size = 250})
+local section2 = tab:section({name = "Visual",side = "right",size = 250})
 local section3 = tab:section({name = "Settings",side = "left",size = 100})
 
 local mouse = Players.LocalPlayer:GetMouse()
@@ -197,7 +197,8 @@ Lighting.Changed:Connect(function()
     FBright()
 end)
 
-function CreateChams(Player, Character)
+function CreateChams(Character)
+    local Player = Players:GetPlayerFromCharacter(Character)
     if Player and Player == Players.LocalPlayer then return end
     if not Character or Character:FindFirstChild("Chams") then return end
     repeat task.wait() until Character:FindFirstChild("Head") and Character:FindFirstChild("HumanoidRootPart")
@@ -303,7 +304,15 @@ function CreateChams(Player, Character)
         if not Character or not Character:FindFirstChild("Head") then break end
         local Position, OnScreen = Camera:WorldToViewportPoint(Character.Head.Position)
         if tracersname and OnScreen then
-            NameTracer.Text = (NameAndDisplayESP and Player.DisplayName.." (@"..Player.Name..")") or Player.DisplayName
+            if not NameTracer then
+                NameTracer = Drawing.new("Text")
+            end
+
+            if Player then
+                NameTracer.Text = (NameAndDisplayESP and Player.DisplayName.." (@"..Player.Name..")") or Player.DisplayName
+            else
+                NameTracer.Text = Character.Name
+            end
             NameTracer.Visible = true
             NameTracer.Position = Vector2.new(Position.X, Position.Y)
             NameTracer.Outline = true
@@ -327,38 +336,41 @@ function CreateChams(Player, Character)
     end
 end
 
+local characters = {}
+
+workspace.DescendantAdded:Connect(function(v)
+    if v:FindFirstChildOfClass("Humanoid") then
+        table.insert(characters, v)
+    end
+end)
+for i,v in pairs(workspace:GetDescendants()) do
+    if v:FindFirstChildOfClass("Humanoid") then
+        table.insert(characters, v)
+    end
+end
+
 function GetPartsInView()
-   local parts = {}
-   for i, obj in pairs(workspace:GetDescendants()) do
-        if obj:IsA("BasePart") and obj.Parent and obj.Parent:IsA("Model") and obj.Parent:FindFirstChildOfClass("Humanoid") and Players:GetPlayerFromCharacter(obj.Parent) then
+    local parts = {}
+    for i, char in pairs(characters) do
+        local obj = char:FindFirstChild(aimpart)
+        if obj and obj:IsA("BasePart") and obj.Parent then
             local vector, isOnScreen = Camera:WorldToScreenPoint(obj.Position)
             if isOnScreen then
                 table.insert(parts, {obj, vector})
             end
         end
-   end
+    end
 
-   return parts
+    return parts
 end
 
 RunService.Heartbeat:Connect(function()
     lerpfov = lerpfov + (fov - lerpfov) * 0.1
 
-    for Index, Player in pairs(Players:GetChildren()) do
-        CreateChams(Player, Player.Character)
-    end
-
-
-    if game.GameId == 1054526971 then --Blackhawk Rescue Mission 5
-
-    end
-end)
-
-while wait(0.1) do
-    if togAim then
+    if togAim and Players.LocalPlayer.Character then
         local partsinview = GetPartsInView()
         table.sort(partsinview, function(a, b)
-            return a[1].Name:lower() < b[1].Name:lower()
+            return (a[1].Position-Players.LocalPlayer.Character.PrimaryPart.Position).Magnitude < (b[1].Position-Players.LocalPlayer.Character.PrimaryPart.Position).Magnitude
         end)
         if FovCircle then
             local found = false
@@ -379,4 +391,8 @@ while wait(0.1) do
     else
         aimat = nil
     end
-end
+
+    for Index, Character in pairs(characters) do
+        CreateChams(Character)
+    end
+end)
