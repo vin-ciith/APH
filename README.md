@@ -19,9 +19,9 @@ Equals - Zoom in *(While zooming)*
 
 Minus - Zoom Out *(While zooming)*
 
-F2 - Toggle Tracers
+F2 - Toggle Tracers (Change between nothing, tracers, names & tracers, and just names)
 
-F3 - Toggle Fullbright
+F3 - Toggle Fullbright (Also disables fog, blurs, and depth of field)
 
 # Games
 ## Universal
