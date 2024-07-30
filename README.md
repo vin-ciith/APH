@@ -24,5 +24,8 @@ F2 - Toggle Tracers
 F3 - Toggle Fullbright
 
 # Games
+## Universal
+You can use this universally
+
 ## Flee the Facility
 https://www.roblox.com/games/893973440
