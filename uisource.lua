@@ -363,7 +363,7 @@ function GetPartsInView()
    return parts
 end
 
-RunService.RenderStepped:Connect(function()
+RunService.Heartbeat:Connect(function()
     lerpfov = lerpfov + (fov - lerpfov) * 0.1
 
     if togAim then
