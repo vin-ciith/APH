@@ -12,6 +12,17 @@ _G.AllHumanoids = false -- If all humanoids are considered instead of just Playe
 --LOADSTRING
 loadstring(game:HttpGet("https://raw.githubusercontent.com/vin-ciith/APH/main/source.lua"))()
 ```
+## Hotkeys
+F1 - Zoom
 
+Equals - Zoom in *(While zooming)*
+
+Minus - Zoom Out *(While zooming)*
+
+F2 - Toggle Tracers
+
+F3 - Toggle Fullbright
+
+# Games
 ## Flee the Facility
 https://www.roblox.com/games/893973440
