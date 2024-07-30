@@ -197,9 +197,8 @@ Lighting.Changed:Connect(function()
     FBright()
 end)
 
-allTracers = {}
 function CreateChams(Player, Character)
-    if Player == Players.LocalPlayer then return end
+    if Player and Player == Players.LocalPlayer then return end
     if not Character or Character:FindFirstChild("Chams") then return end
     repeat task.wait() until Character:FindFirstChild("Head") and Character:FindFirstChild("HumanoidRootPart")
 
@@ -209,7 +208,7 @@ function CreateChams(Player, Character)
     Highlight.FillColor = enemyColor
     Highlight.Enabled = tog2
 
-    if Player:IsFriendsWith(Players.LocalPlayer.UserId) then
+    if Player and Player:IsFriendsWith(Players.LocalPlayer.UserId) then
         Highlight.FillColor = friendColor
         if Player.Team == Players.LocalPlayer.Team and #game.Teams:GetChildren() > 1 then
             local R = friendColor.R + teammateColor.R
@@ -223,44 +222,48 @@ function CreateChams(Player, Character)
         end
     end
 
-    if Player.Team == Players.LocalPlayer.Team and #game.Teams:GetChildren() > 1 then
+    if Player and Player.Team == Players.LocalPlayer.Team and #game.Teams:GetChildren() > 1 then
         Highlight.FillColor = teammateColor
     end
 
     local Tracer, NameTracer
 
-    local c
-    c=Players.PlayerRemoving:Connect(function(p)
-        if p == Player then
-            c:Disconnect()
-            if Tracer then
-                for Index, TracerT in pairs(allTracers) do
-                    if TracerT[1] == Tracer then
-                        table.remove(allTracers, Index)
+    local ABORT = false
+    if Player then
+        local c
+        c=Players.PlayerRemoving:Connect(function(p)
+            if p == Player then
+                ABORT = true
+                c:Disconnect()
+                if Tracer then
+                    for Index, TracerT in pairs(allTracers) do
+                        if TracerT[1] == Tracer then
+                            table.remove(allTracers, Index)
+                        end
                     end
+                    Tracer.Visible = false
+                    Tracer:Remove()
+                    Tracer = nil
                 end
-                Tracer.Visible = false
-                Tracer:Remove()
-                Tracer = nil
-            end
-            if NameTracer then
-                for Index, TracerT in pairs(allTracers) do
-                    if TracerT[1] == NameTracer then
-                        table.remove(allTracers, Index)
+                if NameTracer then
+                    for Index, TracerT in pairs(allTracers) do
+                        if TracerT[1] == NameTracer then
+                            table.remove(allTracers, Index)
+                        end
                     end
+                    NameTracer.Visible = false
+                    NameTracer:Remove()
+                    NameTracer = nil
                 end
-                NameTracer.Visible = false
-                NameTracer:Remove()
-                NameTracer = nil
             end
-        end
-    end)
+        end)
+    end
 
-    while Highlight and Character and Character:FindFirstChild("HumanoidRootPart") and Player and Player.Parent and task.wait() do
+    while Highlight and Character and Character:FindFirstChild("HumanoidRootPart") and not ABORT and task.wait() do
         Highlight.Enabled = tog2
         Highlight.FillColor = enemyColor
 
-        if Player:IsFriendsWith(Players.LocalPlayer.UserId) then
+        if Player and Player:IsFriendsWith(Players.LocalPlayer.UserId) then
             Highlight.FillColor = friendColor
             if Player.Team == Players.LocalPlayer.Team and #game.Teams:GetChildren() > 1 then
                 local R = friendColor.R + teammateColor.R
@@ -274,7 +277,7 @@ function CreateChams(Player, Character)
             end
         end
 
-        if Player.Team == Players.LocalPlayer.Team and #game.Teams:GetChildren() > 1 then
+        if Player and Player.Team == Players.LocalPlayer.Team and #game.Teams:GetChildren() > 1 then
             Highlight.FillColor = teammateColor
         end
 
@@ -283,7 +286,6 @@ function CreateChams(Player, Character)
         if tracers and OnScreen then
             if not Tracer then
                 Tracer = Drawing.new("Line")
-                table.insert(allTracers, {Tracer, Player})
             end
             Tracer.Visible = true
             Tracer.From = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y)
@@ -293,11 +295,6 @@ function CreateChams(Player, Character)
             Tracer.Transparency = 1
         else
             if Tracer then
-                for Index, TracerT in pairs(allTracers) do
-                    if TracerT[1] == Tracer then
-                        table.remove(allTracers, Index)
-                    end
-                end
                 Tracer:Remove()
                 Tracer = nil
             end
@@ -306,21 +303,12 @@ function CreateChams(Player, Character)
         if not Character or not Character:FindFirstChild("Head") then break end
         local Position, OnScreen = Camera:WorldToViewportPoint(Character.Head.Position)
         if tracersname and OnScreen then
-            if not NameTracer then
-                NameTracer = Drawing.new("Text")
-                table.insert(allTracers, {NameTracer, Player})
-            end
             NameTracer.Text = (NameAndDisplayESP and Player.DisplayName.." (@"..Player.Name..")") or Player.DisplayName
             NameTracer.Visible = true
             NameTracer.Position = Vector2.new(Position.X, Position.Y)
             NameTracer.Outline = true
         else
             if NameTracer then
-                for Index, TracerT in pairs(allTracers) do
-                    if TracerT[1] == NameTracer then
-                        table.remove(allTracers, Index)
-                    end
-                end
                 NameTracer:Remove()
                 NameTracer = nil
             end
@@ -328,21 +316,11 @@ function CreateChams(Player, Character)
     end
 
     if Tracer then
-        for Index, TracerT in pairs(allTracers) do
-            if TracerT[1] == Tracer then
-                table.remove(allTracers, Index)
-            end
-        end
         Tracer.Visible = false
         Tracer:Remove()
         Tracer = nil
     end
     if NameTracer then
-        for Index, TracerT in pairs(allTracers) do
-            if TracerT[1] == NameTracer then
-                table.remove(allTracers, Index)
-            end
-        end
         NameTracer.Visible = false
         NameTracer:Remove()
         NameTracer = nil
@@ -366,6 +344,17 @@ end
 RunService.Heartbeat:Connect(function()
     lerpfov = lerpfov + (fov - lerpfov) * 0.1
 
+    for Index, Player in pairs(Players:GetChildren()) do
+        CreateChams(Player, Player.Character)
+    end
+
+
+    if game.GameId == 1054526971 then --Blackhawk Rescue Mission 5
+
+    end
+end)
+
+while wait(0.1) do
     if togAim then
         local partsinview = GetPartsInView()
         table.sort(partsinview, function(a, b)
@@ -390,8 +379,4 @@ RunService.Heartbeat:Connect(function()
     else
         aimat = nil
     end
-
-    for Index, Player in pairs(Players:GetChildren()) do
-        CreateChams(Player, Player.Character)
-    end
-end)
+end
