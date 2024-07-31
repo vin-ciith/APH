@@ -550,6 +550,12 @@ function GetPartsInView()
     for i, char in pairs(characters) do
         local obj = char:FindFirstChild(aimpart)
         if obj and obj:IsA("BasePart") and obj.Parent then
+            if game.GameId == 1718755273 then --town
+                if char.Parent ~= workspace then
+                    continue
+                end
+            end
+
             local hum = obj.Parent:FindFirstChildOfClass("Humanoid")
             if hum then
                 if hum.Health <= 0 then
