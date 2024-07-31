@@ -221,24 +221,6 @@ function CreateChams(Character)
     Highlight.FillColor = enemyColor
     Highlight.Enabled = tog2
 
-    if Player and Players.LocalPlayer:IsFriendsWith(Player.UserId) then
-        Highlight.FillColor = friendColor
-        if Player.Team == Players.LocalPlayer.Team and #game.Teams:GetChildren() > 1 then
-            local R = friendColor.R + teammateColor.R
-            if R > 1 then R = 1 end
-            local G = friendColor.G + teammateColor.G
-            if G > 1 then G = 1 end
-            local B = friendColor.B + teammateColor.B
-            if B > 1 then B = 1 end
-            
-            Highlight.FillColor = Color3.new(R, G, B)
-        end
-    end
-
-    if Player and Player.Team == Players.LocalPlayer.Team and #game.Teams:GetChildren() > 1 then
-        Highlight.FillColor = teammateColor
-    end
-
     local Tracer, NameTracer
 
     local ABORT = false
@@ -300,7 +282,19 @@ function CreateChams(Character)
 
     while Highlight and Character and Character:FindFirstChild("HumanoidRootPart") and not ABORT and task.wait() do
         Highlight.Enabled = tog2
-        Highlight.FillColor = enemyColor
+
+        for i,v in pairs(Players:GetChildren()) do
+            if string.find(Character.Name, v.Name) and v.Character ~= Character then -- Remove Corpses?
+                ABORT = true
+                break
+            end
+        end
+
+        if Player and Player.Team == Players.LocalPlayer.Team and #game.Teams:GetChildren() > 1 then
+            Highlight.FillColor = teammateColor
+        elseif not Player and not Players.LocalPlayer:IsFriendsWith(Player.UserId) then
+            Highlight.FillColor = enemyColor
+        end
 
         if Player and Players.LocalPlayer:IsFriendsWith(Player.UserId) then
             Highlight.FillColor = friendColor
@@ -314,10 +308,6 @@ function CreateChams(Character)
                 
                 Highlight.FillColor = Color3.new(R, G, B)
             end
-        end
-
-        if Player and Player.Team == Players.LocalPlayer.Team and #game.Teams:GetChildren() > 1 then
-            Highlight.FillColor = teammateColor
         end
 
         if not Character or not Character:FindFirstChild("HumanoidRootPart") then break end
@@ -406,17 +396,31 @@ for i,v in pairs(workspace:GetDescendants()) do
         table.insert(characters, v)
     end
 end
+for i,v in pairs(Players:GetChildren()) do
+    if v.Character then table.insert(characters, v.Character); CreateChams(v.Character) end
+    v.CharacterAdded:Connect(function(v)
+        table.insert(characters, v)
+        CreateChams(v)
+    end)
+end
 Players.PlayerAdded:Connect(function(p)
     p.CharacterAdded:Connect(function(v)
         table.insert(characters, v)
+        CreateChams(v)
     end)
 end)
 
 function GetPartsInView()
     local parts = {}
     for i, char in pairs(characters) do
+        for i,v in pairs(Players:GetChildren()) do
+            if string.find(char.Name:lower(), v.Name:lower()) and v.Character ~= char or string.find(char.Name:lower(), " ") then -- Remove Corpses?
+                continue
+            end
+        end
+
         local obj = char:FindFirstChild(aimpart)
-        if obj and obj:IsA("BasePart") and obj.Parent then
+        if obj and obj:IsA("BasePart") and obj.Parent and obj.Transparency < 1 then
             if wallCheck then
                 local RayParams = RaycastParams.new()
                 RayParams.FilterDescendantsInstances = characters
