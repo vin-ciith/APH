@@ -215,6 +215,10 @@ function CreateChams(Character)
             return false
         end
 
+        if not tog2 and not tracers and not tracersname then
+            return false
+        end
+
         local Humanoid = Character:FindFirstChildOfClass("Humanoid")
 
         local Player, FriendsWith = Players:GetPlayerFromCharacter(Character)
