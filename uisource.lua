@@ -1,14 +1,212 @@
 repeat task.wait() until game:IsLoaded()
 
+local Title = "Alpha Hub UI"
+local FileNames = {"MainSave", "Configuration.json", "Drawing.json"}
+
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/insanedude59/SplixUiLib/main/Main"))()
+
+local windowColor = Color3.fromRGB(225,58,81)
+local window = library:new({textsize = 13.5,font = Enum.Font.RobotoMono,name = Title,color = windowColor})
+
+window.outline.Size = UDim2.new(0, 600, 0, 460)
+
+local tab = window:page({name = "Main"})
+local tab2 = window:page({name = "Visuals"})
+local credtab = window:page({name = "Credits"})
+
+local section1 = tab:section({name = "Aimbot",side = "left",size = 260})
+local section3 = tab:section({name = "Settings",side = "right",size = 75})
+
+local vsection1 = tab2:section({name = "ESP",side = "left",size=125})
+local vsection2 = tab2:section({name = "Zoom",side = "right",size=75})
+local vsection3 = tab2:section({name = "Lighting",side = "left",size=75})
+local vsection4 = tab2:section({name = "Colors",side = "right",size=150})
+
 local Camera = workspace.CurrentCamera
 local Lighting = game:GetService("Lighting")
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 
+local HttpService = game:GetService("HttpService")
+
+local function Encode(Table)
+	if Table and type(Table) == "table" then
+		local EncodedTable = HttpService:JSONEncode(Table)
+
+		return EncodedTable
+	end
+end
+
+local function Decode(String)
+	if String and type(String) == "string" then
+		local DecodedTable = HttpService:JSONDecode(String)
+
+		return DecodedTable
+	end
+end
+
+window.key = Enum.KeyCode.RightShift
+
+circlefov = 100
+aimpart = "Head"
+aimkey = Enum.UserInputType.MouseButton2
+smoothness = 1
+tracersM = false
+tracers = false
+tracersname = false
+fov = 20
+lerpfov = fov
+bright = 0.5
+zoomkey = Enum.KeyCode.F1
+FovCircle = nil
+tog2 = false
+fullbright = false
+friendCheck = false
+wallCheck = false
+teamCheck = false
+togAim = false
+
+enemyColor = Color3.new(1, 0, 0)
+friendColor = Color3.new(0, 1, 0)
+teammateColor = Color3.new(0, 0, 1)
+fovColor = Color3.new(1, 1, 1)
+
+local function SaveSettings()
+    if isfile(Title.."/"..FileNames[1].."/"..FileNames[2]) then
+        writefile(Title.."/"..FileNames[1].."/"..FileNames[2], Encode(
+            {
+                wallCheck;
+                teamCheck;
+                friendCheck;
+                togAim;
+                aimkey;
+                fov;
+                zoomkey;
+                smoothness;
+                aimpart;
+                window.key;
+                fullbright;
+                bright;
+                {enemyColor.R, enemyColor.G, enemyColor.B};
+                {friendColor.R, friendColor.G, friendColor.B};
+                {teammateColor.R, teammateColor.G, teammateColor.B};
+            })
+        )
+        print(unpack(Decode(readfile(Title.."/"..FileNames[1].."/"..FileNames[2]))))
+    end
+
+    if isfile(Title.."/"..FileNames[1].."/"..FileNames[2]) then
+        writefile(Title.."/"..FileNames[1].."/"..FileNames[3], Encode(
+            {
+                circlefov, 
+                FovCircle ~= nil,
+                tracers, 
+                tracersM, 
+                tracersname, 
+                tog2, 
+                {fovColor.R, fovColor.G, fovColor.B};
+            })
+        )
+        print(unpack(Decode(readfile(Title.."/"..FileNames[1].."/"..FileNames[3]))))
+    end
+end
+
+if not isfolder(Title) then
+    makefolder(Title)
+end
+
+if not isfolder(Title.."/"..FileNames[1]) then
+    makefolder(Title.."/"..FileNames[1])
+end
+
+if not isfile(Title.."/"..FileNames[1].."/"..FileNames[2]) then
+    writefile(Title.."/"..FileNames[1].."/"..FileNames[2], Encode(
+        {
+            wallCheck;
+            teamCheck;
+            friendCheck;
+            togAim;
+            aimkey;
+            fov;
+            zoomkey;
+            smoothness;
+            aimpart;
+            window.key;
+            fullbright;
+            bright;
+            {enemyColor.R, enemyColor.G, enemyColor.B};
+            {friendColor.R, friendColor.G, friendColor.B};
+            {teammateColor.R, teammateColor.G, teammateColor.B};
+        })
+    )
+else
+    local Settings = Decode(readfile(Title.."/"..FileNames[1].."/"..FileNames[2]))
+    print(unpack(Settings))
+    if #Settings >= 15 then
+        pcall(function()
+            wallCheck = Settings[1]
+            teamCheck = Settings[2]
+            friendCheck = Settings[3]
+            togAim = Settings[4]
+            fov = Settings[6]
+            smoothness = Settings[8]
+            aimpart = Settings[9]
+            fullbright = Settings[11]
+            bright = Settings[12]
+            enemyColor = Color3.new(Settings[13][1], Settings[13][2], Settings[13][3])
+            friendColor = Color3.new(Settings[14][1], Settings[14][2], Settings[14][3])
+            teammateColor = Color3.new(Settings[15][1], Settings[15][2], Settings[15][3])
+        end)
+    end
+end
+
+if not isfile(Title.."/"..FileNames[1].."/"..FileNames[3]) then
+    writefile(Title.."/"..FileNames[1].."/"..FileNames[3], Encode(
+        {
+            circlefov, 
+            FovCircle ~= nil,
+            tracers, 
+            tracersM, 
+            tracersname, 
+            tog2, 
+            {fovColor.R, fovColor.G, fovColor.B};
+        })
+    )
+else
+    local Visuals = Decode(readfile(Title.."/"..FileNames[1].."/"..FileNames[3]))
+    print(unpack(Visuals))
+    if #Visuals >= 7 then
+        pcall(function()
+            circlefov = Visuals[1]
+            tracers = Visuals[3]
+            tracersM = Visuals[4]
+            tracersname = Visuals[5]
+            tog2 = Visuals[6]
+            fovColor = Color3.new(Visuals[7][1], Visuals[7][2], Visuals[7][3])
+
+            if Visuals[2] then
+                FovCircle = Drawing.new("Circle")
+                FovCircle.Visible = true
+                FovCircle.Color = fovColor
+                FovCircle.Transparency = 1
+                FovCircle.Thickness = 2
+                FovCircle.Radius = circlefov
+                FovCircle.Position = Vector2.new(mouse.X, mouse.Y+36) 
+            end
+        end)
+    end
+end
+
+coroutine.wrap(function()
+    while wait(10) do
+        SaveSettings()
+    end
+end)()
+
 local function FBright()
     if not fullbright then return end
-    Lighting.Ambient = Color3.new(1, 1, 1)
-    Lighting.OutdoorAmbient = Color3.new(1, 1, 1)
+    Lighting.Ambient = Color3.new(bright, bright, bright)
+    Lighting.OutdoorAmbient = Color3.new(bright, bright, bright)
     Lighting.Brightness = 3
     Lighting.GlobalShadows = false
     
@@ -31,35 +229,21 @@ local function FBright()
     end
 end
 
-local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/insanedude59/SplixUiLib/main/Main"))()
-
-local windowColor = Color3.fromRGB(225,58,81)
-local window = library:new({textsize = 13.5,font = Enum.Font.RobotoMono,name = "Alpha Hub",color = windowColor})
-
-window.outline.Size = UDim2.new(0, 600, 0, 460)
-
-local tab = window:page({name = "Main"})
-
-local section1 = tab:section({name = "Aimbot",side = "left",size = 260})
-local section2 = tab:section({name = "Visual",side = "right",size = 270})
-local section3 = tab:section({name = "Settings",side = "left",size = 100})
-
 local mouse = Players.LocalPlayer:GetMouse()
 
-circlefov = 100
-section1:toggle({name = "Aimbot",def = false,callback = function(value)
+section1:toggle({name = "Aimbot",def = togAim,callback = function(value)
     togAim = value
 end})
-section1:toggle({name = "Wall Check",def = false,callback = function(value)
+section1:toggle({name = "Wall Check",def = wallCheck,callback = function(value)
     wallCheck = value
 end})
-section1:toggle({name = "Team Check",def = false,callback = function(value)
+section1:toggle({name = "Team Check",def = teamCheck,callback = function(value)
     teamCheck = value
 end})
-section1:toggle({name = "Friend Check",def = false,callback = function(value)
+section1:toggle({name = "Friend Check",def = friendCheck,callback = function(value)
     friendCheck = value
 end})
-section1:toggle({name = "FOV Enabled",def = false,callback = function(value)
+section1:toggle({name = "FOV Enabled",def = FovCircle ~= nil,callback = function(value)
     if value then
         FovCircle = Drawing.new("Circle")
         FovCircle.Visible = true
@@ -82,16 +266,13 @@ section1:slider({name = "FOV",def = circlefov, max = 300,min = 1,rounding = true
     end
 end})
 
-aimpart = "Head"
-aimkey = Enum.UserInputType.MouseButton2
-section1:keybind({name = "Aim Key",def = zoomkey,callback = function(key)
+section1:keybind({name = "Aim Key",def = aimkey,callback = function(key)
    aimkey = key
 end})
-section1:dropdown({name = "Aimpart (W.I.P)",def = "Head",max = 4,options = {"Head","Torso","Arm","Leg"},callback = function(chosen)
+section1:dropdown({name = "Aimpart (W.I.P)",def = aimpart,max = 4,options = {"Head","Torso","Arm","Leg"},callback = function(chosen)
    aimpart = chosen
 end})
 
-smoothness = 1
 section1:slider({name = "Smoothness",def = smoothness, max = 10,min = 1,rounding = true,ticking = false,measuring = "",callback = function(value)
     smoothness = value
 end})
@@ -102,72 +283,70 @@ mouse.Move:Connect(function()
     end
 end)
 
-tracersM = false
-section2:toggle({name = "ESP",def = false,callback = function(value)
+vsection1:toggle({name = "ESP",def = tog2,callback = function(value)
   tog2 = value
 end})
-section2:toggle({name = "Tracers",def = false,callback = function(value)
+vsection1:toggle({name = "Tracers",def = tracers,callback = function(value)
   tracers = value
 end})
-section2:toggle({name = "Middle Tracers",def = false,callback = function(value)
+vsection1:toggle({name = "Middle Tracers",def = tracersM,callback = function(value)
   tracersM = value
 end})
-section2:toggle({name = "Name ESP",def = false,callback = function(value)
+vsection1:toggle({name = "Name ESP",def = tracersname,callback = function(value)
   tracersname = value
 end})
-section2:toggle({name = "Add @ to Name ESP",def = false,callback = function(value)
+vsection1:toggle({name = "Add @ to Name ESP",def = false,callback = function(value)
   NameAndDisplayESP = value
 end})
 
-fov = 20
-lerpfov = fov
-
-section2:slider({name = "Zoom FOV",def = fov, max = 100,min = 1,rounding = true,ticking = false,measuring = "",callback = function(value)
+vsection2:slider({name = "Zoom FOV",def = fov, max = 100,min = 1,rounding = true,ticking = false,measuring = "",callback = function(value)
    fov = value
    Camera.FieldOfView = (zooming and lerpfov) or 70
 end})
 
-zoomkey = Enum.KeyCode.F1
-section2:keybind({name = "Zoom Key",def = zoomkey,callback = function(key)
+vsection2:keybind({name = "Zoom Key",def = zoomkey,callback = function(key)
    zoomkey = key
 end})
 
-section2:toggle({name = "Fullbright",def = false,callback = function(value)
+vsection3:toggle({name = "Fullbright",def = fullbright,callback = function(value)
     fullbright = value
     FBright()
 end})
-
-section3:keybind({name = "Hide UI",def = Enum.KeyCode.RightShift,callback = function(key)
-   window.key = key
+vsection3:slider({name = "Brightness",def = bright * 100, max = 100,min = 1,rounding = true,ticking = false,measuring = "",callback = function(value)
+    bright = value/100
+    FBright()
 end})
 
-enemyColor = Color3.new(1, 0, 0)
-local picker = section2:colorpicker({name = "Enemy Color",cpname = nil,def = enemyColor,callback = function(value)
+section3:keybind({name = "Hide UI",def = window.key,callback = function(key)
+   window.key = key
+end})
+section3:button({name = "Save Config",callback = function(key)
+    SaveSettings()
+end})
+
+local picker = vsection4:colorpicker({name = "Enemy Color",cpname = nil,def = enemyColor,callback = function(value)
    enemyColor = value
 end})
 
-friendColor = Color3.new(0, 1, 0)
-local picker2 = section2:colorpicker({name = "Friend Color",cpname = nil,def = friendColor,callback = function(value)
+local picker2 = vsection4:colorpicker({name = "Friend Color",cpname = nil,def = friendColor,callback = function(value)
    friendColor = value
 end})
 
-teammateColor = Color3.new(0, 0, 1)
-local picker3 = section2:colorpicker({name = "Teammate Color",cpname = nil,def = teammateColor,callback = function(value)
+local picker3 = vsection4:colorpicker({name = "Teammate Color",cpname = nil,def = teammateColor,callback = function(value)
    teammateColor = value
 end})
 
-fovColor = Color3.new(1, 1, 1)
-local picker3 = section2:colorpicker({name = "FOV Circle Color",cpname = nil,def = fovColor,callback = function(value)
+local picker3 = vsection4:colorpicker({name = "FOV Circle Color",cpname = nil,def = fovColor,callback = function(value)
    fovColor = value
    if FovCircle then
        FovCircle.Color = value
    end
 end})
 
-local bgcolor = section3:colorpicker({name = "Border Color",cpname = nil,def = windowColor,callback = function(value)
+local bgcolor = vsection4:colorpicker({name = "Border Color",cpname = nil,def = window.themeitems.accent.BackgroundColor3[1].BackgroundColor3,callback = function(value)
    window.themeitems.accent.BackgroundColor3[1].BackgroundColor3 = value
 end})
-local bgcolor2 = section3:colorpicker({name = "UI Color",cpname = nil,def = windowColor,callback = function(value)
+local bgcolor2 = vsection4:colorpicker({name = "UI Color",cpname = nil,def = window.tabs.BackgroundColor3,callback = function(value)
    window.tabs.BackgroundColor3 = value
 end})
 
@@ -242,7 +421,7 @@ function CreateChams(Character)
 
         local Tracer, NameView
 
-        while ManualStop == false and Highlight ~= nil and Character ~= nil and Character.Parent ~= nil and Character:FindFirstChild("Humanoid") and Character:FindFirstChild("Head") and Character:FindFirstChild("HumanoidRootPart") and Humanoid ~= nil and Humanoid.Health > 0 and task.wait() do
+        while ManualStop == false and Highlight ~= nil and Character ~= nil and Character.Parent ~= nil and Character:FindFirstChild("Humanoid") and Character:FindFirstChild("Head") and Character:FindFirstChild("HumanoidRootPart") and Humanoid ~= nil and Humanoid.Health > 0 and task.wait(0.02) do
             Highlight.Enabled = tog2
             if Player and Player.Parent then
                 local PlayersAmt = 0
@@ -370,7 +549,7 @@ function GetPartsInView()
     local parts = {}
     for i, char in pairs(characters) do
         local obj = char:FindFirstChild(aimpart)
-        if obj and obj:IsA("BasePart") and obj.Parent and obj.Transparency < 1 then
+        if obj and obj:IsA("BasePart") and obj.Parent then
             local hum = obj.Parent:FindFirstChildOfClass("Humanoid")
             if hum then
                 if hum.Health <= 0 then
@@ -437,6 +616,17 @@ RunService.Heartbeat:Connect(function()
                         aimat = v[1]
                     end
                 end
+            end
+            
+            if not found then
+                aimat = nil
+            end
+        else
+            local found = false
+            for i,v in pairs(partsinview) do
+                if v[1].Name ~= aimpart or (Players.LocalPlayer.Character and v[1]:IsDescendantOf(Players.LocalPlayer.Character)) then continue end
+                found = true
+                aimat = v[1]
             end
             
             if not found then
