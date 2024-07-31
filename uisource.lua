@@ -36,12 +36,12 @@ local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/insan
 local windowColor = Color3.fromRGB(225,58,81)
 local window = library:new({textsize = 13.5,font = Enum.Font.RobotoMono,name = "Alpha Hub",color = windowColor})
 
-window.outline.Size = UDim2.new(0, 600, 0, 400)
+window.outline.Size = UDim2.new(0, 600, 0, 460)
 
 local tab = window:page({name = "Main"})
 
-local section1 = tab:section({name = "Aimbot",side = "left",size = 200})
-local section2 = tab:section({name = "Visual",side = "right",size = 250})
+local section1 = tab:section({name = "Aimbot",side = "left",size = 260})
+local section2 = tab:section({name = "Visual",side = "right",size = 270})
 local section3 = tab:section({name = "Settings",side = "left",size = 100})
 
 local mouse = Players.LocalPlayer:GetMouse()
@@ -49,6 +49,12 @@ local mouse = Players.LocalPlayer:GetMouse()
 circlefov = 100
 section1:toggle({name = "Aimbot",def = false,callback = function(value)
     togAim = value
+end})
+section1:toggle({name = "Wall Check",def = false,callback = function(value)
+    wallCheck = value
+end})
+section1:toggle({name = "Team Check",def = false,callback = function(value)
+    teamCheck = value
 end})
 section1:toggle({name = "FOV Enabled",def = false,callback = function(value)
     if value then
@@ -411,6 +417,28 @@ function GetPartsInView()
     for i, char in pairs(characters) do
         local obj = char:FindFirstChild(aimpart)
         if obj and obj:IsA("BasePart") and obj.Parent then
+            if wallCheck then
+                local RayParams = RaycastParams.new()
+                RayParams.FilterDescendantsInstances = characters
+                RayParams.FilterType = Enum.RaycastFilterType.Blacklist
+
+                local Ray = workspace:Raycast(Camera.CFrame.Position, ((obj.Position-Camera.CFrame.Position)*10), RayParams)
+
+                if Ray then
+                    --Object in way!
+                    continue
+                end
+            end
+
+            if teamCheck then
+                local player = Players:GetPlayerFromCharacter(char)
+                if player then
+                    if player.Team == Players.LocalPlayer.Team then
+                        continue
+                    end
+                end
+            end
+
             local vector, isOnScreen = Camera:WorldToScreenPoint(obj.Position)
             if isOnScreen then
                 table.insert(parts, {obj, vector})
