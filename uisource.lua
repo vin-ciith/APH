@@ -369,6 +369,12 @@ end)
 function GetPartsInView()
     local parts = {}
     for i, char in pairs(characters) do
+        if game.GameId == 1718755273 then --town
+            if string.find(char.Name:lower(), " corpse") then
+                continue
+            end
+        end
+
         local obj = char:FindFirstChild(aimpart)
         if obj and obj:IsA("BasePart") and obj.Parent and obj.Transparency < 1 then
             if wallCheck == true then
