@@ -7,19 +7,12 @@ I like eating celery
 loadstring(game:HttpGet("https://raw.githubusercontent.com/vin-ciith/APH/main/uisource.lua"))()
 ```
 ## Hotkeys
-F1 - Zoom
+Right Shift - Toggle Menu
 
-Equals - Zoom in *(While zooming)*
+Mouse 2 (Right Click) - Aimlock
 
-Minus - Zoom Out *(While zooming)*
-
-F2 - Toggle Tracers (Change between nothing, tracers, names & tracers, and just names)
-
-F3 - Toggle Fullbright (Also disables fog, blurs, and depth of field)
+F1 - Zoom In (good for fps games)
 
 # Games
 ## Universal
 You can use this universally
-
-## Flee the Facility
-https://www.roblox.com/games/893973440
