@@ -56,6 +56,9 @@ end})
 section1:toggle({name = "Team Check",def = false,callback = function(value)
     teamCheck = value
 end})
+section1:toggle({name = "Friend Check",def = false,callback = function(value)
+    friendCheck = value
+end})
 section1:toggle({name = "FOV Enabled",def = false,callback = function(value)
     if value then
         FovCircle = Drawing.new("Circle")
@@ -385,6 +388,15 @@ function GetPartsInView()
                 local player = Players:GetPlayerFromCharacter(char)
                 if player then
                     if player.Team == Players.LocalPlayer.Team then
+                        continue
+                    end
+                end
+            end
+
+            if friendCheck == true then
+                local player = Players:GetPlayerFromCharacter(char)
+                if player then
+                    if Players.LocalPlayer:IsFriendsWith(player.UserId) then
                         continue
                     end
                 end
