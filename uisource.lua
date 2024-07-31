@@ -64,7 +64,7 @@ section1:toggle({name = "FOV Enabled",def = false,callback = function(value)
         FovCircle.Transparency = 1
         FovCircle.Thickness = 2
         FovCircle.Radius = circlefov
-        FovCircle.Position = Vector2.new(mouse.X, mouse.Y+36)
+        FovCircle.Position = Vector2.new(mouse.X, mouse.Y+36) 
     else
         if FovCircle then
             FovCircle:Remove()
@@ -210,218 +210,161 @@ end)
 local characters = {}
 
 function CreateChams(Character)
-    if Character and (not Character:FindFirstChild("Head") or not Character:FindFirstChild("HumanoidRootPart")) then return false end
-    local Player = Players:GetPlayerFromCharacter(Character)
-    if Player and Player == Players.LocalPlayer then return end
-    if Character == nil or Character.Parent == nil or Character:FindFirstChild("Chams") then return end
-
-    local Highlight = Instance.new("Highlight")
-    Highlight.Parent = Character
-    Highlight.Name = "Chams"
-    Highlight.FillColor = enemyColor
-    Highlight.Enabled = tog2
-
-    local Tracer, NameTracer
-
-    local ABORT = false
-    local c
-    c=Players.PlayerRemoving:Connect(function(p)
-        ABORT = true
-        Highlight:Destroy()
-        c:Disconnect()
-
-        if Tracer then
-            Tracer.Visible = false
-            Tracer:Remove()
-            Tracer = nil
+    if Character ~= nil and Character.Parent ~= nil and Character:FindFirstChildOfClass("Humanoid") and Character:FindFirstChild("Head") and Character:FindFirstChild("HumanoidRootPart") then
+        if Character:FindFirstChild("Chams") then
+            return false
         end
-        if NameTracer then
-            NameTracer.Visible = false
-            NameTracer:Remove()
-            NameTracer = nil
+
+        local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+
+        local Player, FriendsWith = Players:GetPlayerFromCharacter(Character)
+        if Player then
+            if Player == Players.LocalPlayer then return false end
+            FriendsWith = Players.LocalPlayer:IsFriendsWith(Player.UserId)
         end
-    end)
 
-    local hum = Character:FindFirstChildOfClass("Humanoid")
-    if hum then
-        hum.Died:Connect(function()
-            for i,v in pairs(characters) do
-                if v == Character then
-                    table.remove(characters, i)
-                end
-            end
-            ABORT = true
-            Highlight:Destroy()
+        local Highlight = Instance.new("Highlight")
+        Highlight.Name = "Chams"
+        Highlight.Parent = Character
+        Highlight.FillColor = enemyColor
 
-            if Tracer then
-                Tracer.Visible = false
-                Tracer:Remove()
-                Tracer = nil
-            end
-            if NameTracer then
-                NameTracer.Visible = false
-                NameTracer:Remove()
-                NameTracer = nil
-            end
+        local ManualStop = false
+        Humanoid.Died:Connect(function()
+            ManualStop = true
         end)
-    else
-        ABORT = true
-        Highlight:Destroy()
+
+        local Tracer, NameView
+
+        while ManualStop == false and Highlight ~= nil and Character ~= nil and Character.Parent ~= nil and Character:FindFirstChild("Humanoid") and Character:FindFirstChild("Head") and Character:FindFirstChild("HumanoidRootPart") and Humanoid ~= nil and Humanoid.Health > 0 and task.wait() do
+            Highlight.Enabled = tog2
+            if Player and Player.Parent then
+                local PlayersAmt = 0
+                local TeamsPlayers = {}
+                for _,t in pairs(game.Teams:GetChildren()) do
+                    TeamsPlayers[t.Name] = 0
+                end
+                for _,p in pairs(game.Players:GetPlayers()) do
+                    if p.Team then
+                        PlayersAmt += 1
+                        TeamsPlayers[p.Team.Name] += 1
+                    end
+                end
+
+                local IsTeam = (Player.Team == Players.LocalPlayer.Team and #game.Teams:GetChildren() > 1 and TeamsPlayers[Player.Team.Name] ~= PlayersAmt)
+                FriendsWith = Players.LocalPlayer:IsFriendsWith(Player.UserId)
+
+                if FriendsWith then
+                    Highlight.FillColor = friendColor
+                    if IsTeam then
+                        local R = friendColor.R + teammateColor.R
+                        if R > 1 then R = 1 end
+                        local G = friendColor.G + teammateColor.G
+                        if G > 1 then G = 1 end
+                        local B = friendColor.B + teammateColor.B
+                        if B > 1 then B = 1 end
+                        
+                        Highlight.FillColor = Color3.new(R, G, B)
+                    end
+                elseif IsTeam then
+                    Highlight.FillColor = teammateColor
+                else
+                    Highlight.FillColor = enemyColor
+                end
+            end
+
+            local Position, OnScreen = Camera:WorldToViewportPoint(Character.HumanoidRootPart.Position)
+            if tracers and (OnScreen or tracersM) then
+                local div = 1
+                if tracersM then
+                    div = 2
+                end
+                if tracersM and not OnScreen then
+                    local Offset = (Character.HumanoidRootPart.Position-Camera.CFrame.Position)
+                    local Relative = Camera.CFrame:VectorToObjectSpace(Offset)
+
+                    local Position2D = Vector2.new(-Relative.X, Relative.Y)
+                    local PositionUnit = Position2D.Unit
+
+                    if not Tracer then
+                        Tracer = Drawing.new("Line")
+                    end
+                    Tracer.Visible = true
+                    Tracer.From = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/div)
+                    Tracer.To = PositionUnit * -math.abs(Camera.ViewportSize.Y/PositionUnit.Y)
+                    Tracer.Color = Highlight.FillColor
+                    Tracer.Thickness = 2
+                    Tracer.Transparency = 1
+                else
+                    if not Tracer then
+                        Tracer = Drawing.new("Line")
+                    end
+                    Tracer.Visible = true
+                    Tracer.From = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/div)
+                    Tracer.To = Vector2.new(Position.X, Position.Y)
+                    Tracer.Color = Highlight.FillColor
+                    Tracer.Thickness = 2
+                    Tracer.Transparency = 1
+                end
+            else
+                if Tracer then
+                    Tracer:Remove()
+                    Tracer = nil
+                end
+            end
+            
+            local Position, OnScreen = Camera:WorldToViewportPoint(Character.Head.Position)
+            if tracersname and OnScreen then
+                if not NameView then
+                    NameView = Drawing.new("Text")
+                end
+
+                if Player then
+                    NameView.Text = (NameAndDisplayESP and Player.DisplayName.." (@"..Player.Name..")") or Player.DisplayName
+                else
+                    NameView.Text = Character.Name
+                end
+                NameView.Visible = true
+                NameView.Position = Vector2.new(Position.X, Position.Y)
+                NameView.Outline = true
+            else
+                if NameView then
+                    NameView:Remove()
+                    NameView = nil
+                end
+            end
+        end
+
+        if Highlight then
+            Highlight:Remove()
+        end
 
         if Tracer then
-            Tracer.Visible = false
             Tracer:Remove()
-            Tracer = nil
         end
-        if NameTracer then
-            NameTracer.Visible = false
-            NameTracer:Remove()
-            NameTracer = nil
+        if NameView then
+            NameView:Remove()
         end
-    end
-
-    while Highlight and Character and Character:FindFirstChild("HumanoidRootPart") and not ABORT and task.wait() do
-        Highlight.Enabled = tog2
-
-        for i,v in pairs(Players:GetChildren()) do
-            if string.find(Character.Name, v.Name) and v.Character ~= Character then -- Remove Corpses?
-                ABORT = true
-                break
-            end
-        end
-
-        if Player and Player.Team == Players.LocalPlayer.Team and #game.Teams:GetChildren() > 1 then
-            Highlight.FillColor = teammateColor
-        elseif not Player and not Players.LocalPlayer:IsFriendsWith(Player.UserId) then
-            Highlight.FillColor = enemyColor
-        end
-
-        if Player and Players.LocalPlayer:IsFriendsWith(Player.UserId) then
-            Highlight.FillColor = friendColor
-            if Player.Team == Players.LocalPlayer.Team and #game.Teams:GetChildren() > 1 then
-                local R = friendColor.R + teammateColor.R
-                if R > 1 then R = 1 end
-                local G = friendColor.G + teammateColor.G
-                if G > 1 then G = 1 end
-                local B = friendColor.B + teammateColor.B
-                if B > 1 then B = 1 end
-                
-                Highlight.FillColor = Color3.new(R, G, B)
-            end
-        end
-
-        if not Character or not Character:FindFirstChild("HumanoidRootPart") then break end
-        local Position, OnScreen = Camera:WorldToViewportPoint(Character.HumanoidRootPart.Position)
-        if tracers and (OnScreen or tracersM) then
-            local div = 1
-            if tracersM then
-                div = 2
-            end
-            if tracersM and not OnScreen then
-                local Offset = (Character.HumanoidRootPart.Position-Camera.CFrame.Position)
-                local Relative = Camera.CFrame:VectorToObjectSpace(Offset)
-
-                local Position2D = Vector2.new(-Relative.X, Relative.Y)
-                local PositionUnit = Position2D.Unit
-
-                if not Tracer then
-                    Tracer = Drawing.new("Line")
-                end
-                Tracer.Visible = true
-                Tracer.From = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/div)
-                Tracer.To = PositionUnit * -math.abs(Camera.ViewportSize.Y/PositionUnit.Y)
-                Tracer.Color = Highlight.FillColor
-                Tracer.Thickness = 2
-                Tracer.Transparency = 1
-            else
-                if not Tracer then
-                    Tracer = Drawing.new("Line")
-                end
-                Tracer.Visible = true
-                Tracer.From = Vector2.new(Camera.ViewportSize.X/2, Camera.ViewportSize.Y/div)
-                Tracer.To = Vector2.new(Position.X, Position.Y)
-                Tracer.Color = Highlight.FillColor
-                Tracer.Thickness = 2
-                Tracer.Transparency = 1
-            end
-        else
-            if Tracer then
-                Tracer:Remove()
-                Tracer = nil
-            end
-        end
-        
-        if not Character or not Character:FindFirstChild("Head") then break end
-        local Position, OnScreen = Camera:WorldToViewportPoint(Character.Head.Position)
-        if tracersname and OnScreen then
-            if not NameTracer then
-                NameTracer = Drawing.new("Text")
-            end
-
-            if Player then
-                NameTracer.Text = (NameAndDisplayESP and Player.DisplayName.." (@"..Player.Name..")") or Player.DisplayName
-            else
-                NameTracer.Text = Character.Name
-            end
-            NameTracer.Visible = true
-            NameTracer.Position = Vector2.new(Position.X, Position.Y)
-            NameTracer.Outline = true
-        else
-            if NameTracer then
-                NameTracer:Remove()
-                NameTracer = nil
-            end
-        end
-    end
-
-    if Tracer then
-        Tracer.Visible = false
-        Tracer:Remove()
-        Tracer = nil
-    end
-    if NameTracer then
-        NameTracer.Visible = false
-        NameTracer:Remove()
-        NameTracer = nil
     end
 end
 
-workspace.DescendantAdded:Connect(function(v)
-    if v:FindFirstChildOfClass("Humanoid") then
-        table.insert(characters, v)
-    end
-end)
-for i,v in pairs(workspace:GetDescendants()) do
-    if v:FindFirstChildOfClass("Humanoid") then
-        table.insert(characters, v)
-    end
-end
 for i,v in pairs(Players:GetChildren()) do
-    if v.Character then table.insert(characters, v.Character); CreateChams(v.Character) end
+    if v.Character then table.insert(characters, v.Character) end
     v.CharacterAdded:Connect(function(v)
         table.insert(characters, v)
-        CreateChams(v)
     end)
 end
 Players.PlayerAdded:Connect(function(p)
     p.CharacterAdded:Connect(function(v)
         table.insert(characters, v)
-        CreateChams(v)
     end)
 end)
 
 function GetPartsInView()
     local parts = {}
     for i, char in pairs(characters) do
-        for i,v in pairs(Players:GetChildren()) do
-            if string.find(char.Name:lower(), v.Name:lower()) and v.Character ~= char or string.find(char.Name:lower(), " ") then -- Remove Corpses?
-                continue
-            end
-        end
-
         local obj = char:FindFirstChild(aimpart)
         if obj and obj:IsA("BasePart") and obj.Parent and obj.Transparency < 1 then
-            if wallCheck then
+            if wallCheck == true then
                 local RayParams = RaycastParams.new()
                 RayParams.FilterDescendantsInstances = characters
                 RayParams.FilterType = Enum.RaycastFilterType.Blacklist
@@ -434,7 +377,7 @@ function GetPartsInView()
                 end
             end
 
-            if teamCheck then
+            if teamCheck == true then
                 local player = Players:GetPlayerFromCharacter(char)
                 if player then
                     if player.Team == Players.LocalPlayer.Team then
@@ -481,9 +424,10 @@ RunService.Heartbeat:Connect(function()
         aimat = nil
     end
 
-    for Index, Character in pairs(characters) do
+    for Index, Player in pairs(Players:GetChildren()) do
+        if not Player.Character then continue end
         task.spawn(function()
-            CreateChams(Character)
+            CreateChams(Player.Character)
         end)
     end
 end)
