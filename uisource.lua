@@ -377,6 +377,13 @@ function GetPartsInView()
 
         local obj = char:FindFirstChild(aimpart)
         if obj and obj:IsA("BasePart") and obj.Parent and obj.Transparency < 1 then
+            local hum = obj.Parent:FindFirstChildOfClass("Humanoid")
+            if hum then
+                if hum.Health <= 0 then
+                    continue
+                end
+            end
+
             if wallCheck == true then
                 local RayParams = RaycastParams.new()
                 RayParams.FilterDescendantsInstances = characters
