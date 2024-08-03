@@ -134,11 +134,12 @@ local vsection2 = tab2:section({name = "Zoom",side = "right",size=75})
 local vsection3 = tab2:section({name = "Lighting",side = "left",size=75})
 local vsection4 = tab2:section({name = "Colors",side = "right",size=150})
 
+local townPassive = nil
 if game.GameId == 1718755273 then
-	local townSection = tab:Section({name = "town",side = "right",size=50})
+	local townSection = tab:section({name = "town",side = "right",size=50})
 
 	townPassive = Color3.new(1, 1, 1)
-	townSection:colorpicker({name = "Passive Color",cpname = nil,def = townPassive,callback = function(value)
+	local passivePicker = townSection:colorpicker({name = "Passive Color",cpname = nil,def = townPassive,callback = function(value)
 		townPassive = value
 	end})	
 end
