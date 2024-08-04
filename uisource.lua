@@ -8,7 +8,7 @@ local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/insan
 local windowColor = Color3.fromRGB(225,58,81)
 local window = library:new({textsize = 13.5,font = Enum.Font.RobotoMono,name = Title,color = windowColor})
 
-window.outline.Size = UDim2.new(0, 600, 0, 460)
+window.outline.Size = UDim2.new(0, 600, 0, 480)
 
 local tab = window:page({name = "Main"})
 local tab2 = window:page({name = "Visuals"})
@@ -25,7 +25,7 @@ credsThinkers:button({name = "press me",callback = function()
 	sound.SoundId = "rbxassetid://7933571710"
 	sound:Play()
 	game:GetService("Debris"):AddItem(sound, 5)
-	
+
 	local Part = Instance.new("Part")
 	Part.Anchored = true
 	Part.BottomSurface = Enum.SurfaceType.Smooth
@@ -114,7 +114,7 @@ credsThinkers:button({name = "press me",callback = function()
 	ParticleEmitter4.Texture = "http://www.roblox.com/asset/?id=241685484"
 	ParticleEmitter4.RotSpeed = NumberRange.new(260, 260)
 	ParticleEmitter4.Parent = Part
-	
+
 	ParticleEmitter:Emit(50)
 	ParticleEmitter1:Emit(50)
 	ParticleEmitter2:Emit(50)
@@ -127,6 +127,7 @@ credsThinkers:button({name = "press me",callback = function()
 end})
 
 local section1 = tab:section({name = "Aimbot",side = "left",size = 260})
+local section2 = tab:section({name = "Player",side = "Left",size = 125})
 local section3 = tab:section({name = "Settings",side = "right",size = 75})
 
 local vsection1 = tab2:section({name = "ESP",side = "left",size=125})
@@ -136,12 +137,17 @@ local vsection4 = tab2:section({name = "Colors",side = "right",size=150})
 
 local townPassive = nil
 if game.GameId == 1718755273 then
-	local townSection = tab:section({name = "town",side = "right",size=50})
+	local townSection = tab:section({name = "town",side = "right",size=75})
 
 	townPassive = Color3.new(1, 1, 1)
 	local passivePicker = townSection:colorpicker({name = "Passive Color",cpname = nil,def = townPassive,callback = function(value)
 		townPassive = value
 	end})	
+
+	townCheck = true
+	townSection:toggle({name = "Passive Check (Aimbot)",def = townCheck,callback = function(value)
+		townCheck = value
+	end})
 end
 
 local Camera = workspace.CurrentCamera
@@ -169,6 +175,10 @@ end
 
 window.key = Enum.KeyCode.RightShift
 
+noclip = false
+walkspeedEnabled = false
+clicktp = false
+walkspeed = 16
 circlefov = 100
 aimpart = "Head"
 aimkey = Enum.UserInputType.MouseButton2
@@ -201,17 +211,21 @@ local function SaveSettings()
 				teamCheck;
 				friendCheck;
 				togAim;
-				aimkey;
+				tostring(aimkey);
 				fov;
-				zoomkey;
+				tostring(zoomkey);
 				smoothness;
 				aimpart;
-				window.key;
+				tostring(window.key);
 				fullbright;
 				bright;
 				{enemyColor.R, enemyColor.G, enemyColor.B};
 				{friendColor.R, friendColor.G, friendColor.B};
 				{teammateColor.R, teammateColor.G, teammateColor.B};
+				noclip,
+				walkspeedEnabled,
+				walkspeed,
+				clicktp
 			})
 		)
 		print(unpack(Decode(readfile(Title.."/"..FileNames[1].."/"..FileNames[2]))))
@@ -248,17 +262,21 @@ if not isfile(Title.."/"..FileNames[1].."/"..FileNames[2]) then
 			teamCheck;
 			friendCheck;
 			togAim;
-			aimkey;
+			tostring(aimkey);
 			fov;
-			zoomkey;
+			tostring(zoomkey);
 			smoothness;
 			aimpart;
-			window.key;
+			tostring(window.key);
 			fullbright;
 			bright;
 			{enemyColor.R, enemyColor.G, enemyColor.B};
 			{friendColor.R, friendColor.G, friendColor.B};
 			{teammateColor.R, teammateColor.G, teammateColor.B};
+			noclip,
+			walkspeedEnabled,
+			walkspeed,
+			clicktp
 		})
 	)
 else
@@ -266,6 +284,16 @@ else
 	print(unpack(Settings))
 	if #Settings >= 15 then
 		pcall(function()
+			if Settings[5] then
+				aimkey = Enum.KeyCode[string.split(tostring(Settings[5]), ".")[3]]
+			end
+			if Settings[7] then
+				zoomkey = Enum.KeyCode[string.split(tostring(Settings[7]), ".")[3]]
+			end
+			if Settings[10] then
+				window.key = Enum.KeyCode[string.split(tostring(Settings[10]), ".")[3]]
+			end
+			
 			wallCheck = Settings[1]
 			teamCheck = Settings[2]
 			friendCheck = Settings[3]
@@ -278,6 +306,10 @@ else
 			enemyColor = Color3.new(Settings[13][1], Settings[13][2], Settings[13][3])
 			friendColor = Color3.new(Settings[14][1], Settings[14][2], Settings[14][3])
 			teammateColor = Color3.new(Settings[15][1], Settings[15][2], Settings[15][3])
+			noclip = Settings[16]
+			walkspeedEnabled = Settings[17]
+			walkspeed = Settings[18]
+			clicktp = Settings[19]
 		end)
 	end
 end
@@ -416,6 +448,19 @@ section1:slider({name = "Smoothness",def = smoothness, max = 10,min = 1,rounding
 	smoothness = value
 end})
 
+section2:toggle({name = "Toggle WalkSpeed",def = walkspeedEnabled,callback = function(value)
+	walkspeedEnabled = value
+end})
+section2:slider({name = "WalkSpeed",def = walkspeed, max = 250,min = 1,rounding = true,ticking = false,measuring = "",callback = function(value)
+	walkspeed = value
+end})
+section2:toggle({name = "Noclip",def = noclip,callback = function(value)
+	noclip = value
+end})
+section2:toggle({name = "CTRL+Click Teleport",def = clicktp,callback = function(value)
+	clicktp = value
+end})
+
 mouse.Move:Connect(function()
 	if FovCircle then
 		FovCircle.Position = Vector2.new(mouse.X, mouse.Y+36)
@@ -438,7 +483,7 @@ vsection1:toggle({name = "Add @ to Name ESP",def = false,callback = function(val
 	NameAndDisplayESP = value
 end})
 
-vsection2:slider({name = "Zoom FOV",def = fov, max = 100,min = 1,rounding = true,ticking = false,measuring = "",callback = function(value)
+local fovSlider = vsection2:slider({name = "Zoom FOV (= or -)",def = fov, max = 100,min = 1,rounding = true,ticking = false,measuring = "",callback = function(value)
 	fov = value
 	Camera.FieldOfView = (zooming and lerpfov) or 70
 end})
@@ -496,6 +541,18 @@ uis.InputBegan:Connect(function(input, processed)
 	if input.KeyCode == zoomkey then
 		zooming = not zooming
 		Camera.FieldOfView = (zooming and lerpfov) or 70
+	elseif input.KeyCode == Enum.KeyCode.Equals then
+		fov = fov - 5
+		if fov < fovSlider.min then
+			fov = fovSlider.min
+		end
+		fovSlider:set(fov)
+	elseif input.KeyCode == Enum.KeyCode.Minus then
+		fov = fov + 5
+		if fov > fovSlider.max then
+			fov = fovSlider.max
+		end
+		fovSlider:set(fov)
 	end
 
 	if (input.KeyCode == aimkey or input.UserInputType == aimkey) and togAim then
@@ -560,7 +617,7 @@ function CreateChams(Character)
 
 		local Tracer, NameView
 
-		while ManualStop == false and Highlight ~= nil and Character ~= nil and Character.Parent ~= nil and Character:FindFirstChild("Humanoid") and Character:FindFirstChild("Head") and Character:FindFirstChild("HumanoidRootPart") and Humanoid ~= nil and Humanoid.Health > 0 and task.wait(0.02) do
+		while ManualStop == false and Highlight ~= nil and Character ~= nil and Character.Parent ~= nil and Character:FindFirstChild("Humanoid") and Character:FindFirstChild("Head") and Character:FindFirstChild("HumanoidRootPart") and Humanoid ~= nil and Humanoid.Health > 0 and task.wait(0.05) do
 			Highlight.Enabled = tog2
 			if Player and Player.Parent then
 				local PlayersAmt = 0
@@ -707,11 +764,11 @@ function GetPartsInView()
 			if wallCheck == true then
 				local RayParams = RaycastParams.new()
 				RayParams.FilterDescendantsInstances = characters
-				RayParams.FilterType = Enum.RaycastFilterType.Blacklist
+				RayParams.FilterType = Enum.RaycastFilterType.Exclude
 
-				local Ray = workspace:Raycast(Camera.CFrame.Position, ((obj.Position-Camera.CFrame.Position)*10), RayParams)
+				local ray = workspace:Raycast(Camera.CFrame.Position, ((obj.Position-Camera.CFrame.Position)), RayParams)
 
-				if Ray then
+				if ray then
 					--Object in way!
 					continue
 				end
@@ -735,6 +792,12 @@ function GetPartsInView()
 				end
 			end
 
+			if townPassive ~= nil and townPassive == true then
+				if obj.Material == Enum.Material.ForceField then
+					continue
+				end
+			end
+
 			local vector, isOnScreen = Camera:WorldToScreenPoint(obj.Position)
 			if isOnScreen then
 				table.insert(parts, {obj, vector})
@@ -745,8 +808,18 @@ function GetPartsInView()
 	return parts
 end
 
+local holdingCTRL = false
+
+local wsConnect
+local resetWS = true
+local resetNC = true
+
 RunService.Heartbeat:Connect(function()
 	lerpfov = lerpfov + (fov - lerpfov) * 0.1
+	
+	if zooming then
+		Camera.FieldOfView = lerpfov
+	end
 
 	if togAim and Players.LocalPlayer.Character then
 		local partsinview = GetPartsInView()
@@ -784,10 +857,77 @@ RunService.Heartbeat:Connect(function()
 		aimat = nil
 	end
 
+	if clicktp and uis:IsKeyDown(Enum.KeyCode.LeftControl) then
+		holdingCTRL = true
+	else
+		holdingCTRL = false
+	end
+
+	if noclip then
+		resetNC = false
+		if not noclipParts then
+			noclipParts = {}
+			for i,v in pairs(Players.LocalPlayer.Character:GetChildren()) do
+				if v:IsA("BasePart") and v.CanCollide then
+					table.insert(noclipParts, v.Name)
+				end
+			end
+		end
+
+		for i,v in pairs(Players.LocalPlayer.Character:GetChildren()) do
+			if v:IsA("BasePart") then
+				v.CanCollide = false
+			end
+		end
+	else
+		if noclipParts and not resetNC then
+			resetNC = true
+			for i,v in pairs(Players.LocalPlayer.Character:GetChildren()) do
+				if table.find(noclipParts, v.Name) then
+					v.CanCollide = true
+				end
+			end
+		end
+	end
+
+	if Players.LocalPlayer.Character then
+		local Humanoid = Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+		if Humanoid then
+			if walkspeedEnabled then
+				resetWS = false
+				Humanoid.WalkSpeed = walkspeed
+				if not wsConnect then
+					wsConnect = Humanoid:GetPropertyChangedSignal("WalkSpeed"):Connect(function()
+						Humanoid.WalkSpeed = walkspeed
+					end)
+				end
+			elseif not resetWS then
+				resetWS = true
+				if wsConnect then
+					wsConnect:Disconnect()
+					wsConnect = nil
+				end
+				Humanoid.WalkSpeed = game.StarterPlayer.CharacterWalkSpeed
+			end
+		end
+	end
+
 	for Index, Player in pairs(Players:GetChildren()) do
 		if not Player.Character then continue end
 		task.spawn(function()
 			CreateChams(Player.Character)
 		end)
+	end
+end)
+
+mouse.Button1Down:Connect(function()
+	if holdingCTRL and clicktp then
+		local pos = mouse.Hit.Position
+		if Players.LocalPlayer.Character then
+			local HRP = Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+			if HRP then
+				Players.LocalPlayer.Character:PivotTo(CFrame.new(pos + Vector3.new(0, 3.5, 0)))
+			end
+		end
 	end
 end)
