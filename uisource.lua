@@ -876,7 +876,16 @@ function CreateChams(Character:Model)
 		local Highlight = Instance.new("Highlight")
 		Highlight.Name = "Chams"
 		Highlight.Parent = Character
-		Highlight.FillColor = enemyColor
+		
+		if game.GameId == 372226183 then
+			if Character:FindFirstChild("Hammer") then
+				Highlight.FillColor = enemyColor
+			else
+				Highlight.FillColor = teammateColor
+			end
+		else
+			Highlight.FillColor = enemyColor
+		end
 
 		local ManualStop = false
 		Humanoid.Died:Connect(function()
@@ -899,8 +908,17 @@ function CreateChams(Character:Model)
 						TeamsPlayers[p.Team.Name] += 1
 					end
 				end
-
-				local IsTeam = (Player.Team == Players.LocalPlayer.Team and #game.Teams:GetChildren() > 1 and TeamsPlayers[Player.Team.Name] ~= PlayersAmt)
+				
+				local IsTeam
+				if game.GameId == 372226183 then
+					if Character:FindFirstChild("Hammer") then
+						IsTeam = false
+					else
+						IsTeam = true
+					end
+				else
+					IsTeam = (Player.Team == Players.LocalPlayer.Team and #game.Teams:GetChildren() > 1 and TeamsPlayers[Player.Team.Name] ~= PlayersAmt)
+				end
 				FriendsWith = Players.LocalPlayer:IsFriendsWith(Player.UserId)
 
 				if FriendsWith then
