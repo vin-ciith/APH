@@ -8,7 +8,7 @@ local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/insan
 local windowColor = Color3.fromRGB(225,58,81)
 local window = library:new({textsize = 13.5,font = Enum.Font.RobotoMono,name = Title,color = windowColor})
 
-window.outline.Size = UDim2.new(0, 600, 0, 480)
+window.outline.Size = UDim2.new(0, 600, 0, 500)
 
 local tab = window:page({name = "Main"})
 local tab2 = window:page({name = "Visuals"})
@@ -127,7 +127,7 @@ credsThinkers:button({name = "press me",callback = function()
 end})
 
 local section1 = tab:section({name = "Aimbot",side = "left",size = 260})
-local section2 = tab:section({name = "Player",side = "Left",size = 125})
+local section2 = tab:section({name = "Player",side = "Left",size = 150})
 local section3 = tab:section({name = "Settings",side = "right",size = 75})
 
 local vsection1 = tab2:section({name = "ESP",side = "left",size=125})
@@ -175,6 +175,7 @@ end
 
 window.key = Enum.KeyCode.RightShift
 
+fly = false
 noclip = false
 walkspeedEnabled = false
 clicktp = false
@@ -225,7 +226,8 @@ local function SaveSettings()
 				noclip,
 				walkspeedEnabled,
 				walkspeed,
-				clicktp
+				clicktp,
+				fly
 			})
 		)
 		print(unpack(Decode(readfile(Title.."/"..FileNames[1].."/"..FileNames[2]))))
@@ -276,13 +278,14 @@ if not isfile(Title.."/"..FileNames[1].."/"..FileNames[2]) then
 			noclip,
 			walkspeedEnabled,
 			walkspeed,
-			clicktp
+			clicktp,
+			fly
 		})
 	)
 else
 	local Settings = Decode(readfile(Title.."/"..FileNames[1].."/"..FileNames[2]))
 	print(unpack(Settings))
-	if #Settings >= 15 then
+	if #Settings >= 20 then
 		pcall(function()
 			if Settings[5] ~= nil then
 				print(string.split(tostring(Settings[5]), ".")[3])
@@ -313,6 +316,7 @@ else
 			walkspeedEnabled = Settings[17]
 			walkspeed = Settings[18]
 			clicktp = Settings[19]
+			fly = Settings[20]
 		end)
 	end
 end
@@ -457,6 +461,161 @@ end})
 section2:slider({name = "WalkSpeed",def = walkspeed, max = 250,min = 1,rounding = true,ticking = false,measuring = "",callback = function(value)
 	walkspeed = value
 end})
+local flyTog
+flyTog = section2:toggle({name = "Fly (E)",def = fly,callback = function(value)
+	fly = value
+	local plr = game.Players.LocalPlayer
+	local torso = plr.Character.Torso
+	local flying = false
+	local deb = true
+	local ctrl = {f = 0, b = 0, l = 0, r = 0}
+	local lastctrl = {f = 0, b = 0, l = 0, r = 0}
+	local maxspeed = 50
+	local speed = 0
+	
+	local function Fly()
+		local bg = Instance.new("BodyGyro", torso)
+		bg.P = 9e4
+		bg.maxTorque = Vector3.new(9e9, 9e9, 9e9)
+		bg.cframe = torso.CFrame
+		local bv = Instance.new("BodyVelocity", torso)
+		bv.velocity = Vector3.new(0,0.1,0)
+		bv.maxForce = Vector3.new(9e9, 9e9, 9e9)
+		repeat task.wait()
+			plr.Character.Humanoid.PlatformStand = true
+			if ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0 then
+				speed = speed+.5+(speed/maxspeed)
+				if speed > maxspeed then
+					speed = maxspeed
+				end
+			elseif not (ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0) and speed ~= 0 then
+				speed = speed-1
+				if speed < 0 then
+					speed = 0
+				end
+			end
+			if (ctrl.l + ctrl.r) ~= 0 or (ctrl.f + ctrl.b) ~= 0 then
+				bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (ctrl.f+ctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(ctrl.l+ctrl.r,(ctrl.f+ctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
+				lastctrl = {f = ctrl.f, b = ctrl.b, l = ctrl.l, r = ctrl.r}
+			elseif (ctrl.l + ctrl.r) == 0 and (ctrl.f + ctrl.b) == 0 and speed ~= 0 then
+				bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (lastctrl.f+lastctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(lastctrl.l+lastctrl.r,(lastctrl.f+lastctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
+			else
+				bv.velocity = Vector3.new(0,0.1,0)
+			end
+			bg.cframe = game.Workspace.CurrentCamera.CoordinateFrame * CFrame.Angles(-math.rad((ctrl.f+ctrl.b)*50*speed/maxspeed),0,0)
+		until not fly or not flying
+		ctrl = {f = 0, b = 0, l = 0, r = 0}
+		lastctrl = {f = 0, b = 0, l = 0, r = 0}
+		speed = 0
+		bg:Destroy()
+		bv:Destroy()
+		plr.Character.Humanoid.PlatformStand = true
+	end
+
+	c1 = mouse.KeyDown:connect(function(key)
+		if key:lower() == "e" then
+			flying = not flying
+			if flying then spawn(Fly()) end
+		elseif key:lower() == "w" then
+			ctrl.f = 1
+		elseif key:lower() == "s" then
+			ctrl.b = -1
+		elseif key:lower() == "a" then
+			ctrl.l = -1
+		elseif key:lower() == "d" then
+			ctrl.r = 1
+		end
+	end)
+	c2 = mouse.KeyUp:connect(function(key)
+		if key:lower() == "w" then
+			ctrl.f = 0
+		elseif key:lower() == "s" then
+			ctrl.b = 0
+		elseif key:lower() == "a" then
+			ctrl.l = 0
+		elseif key:lower() == "d" then
+			ctrl.r = 0
+		end
+	end)
+	
+	if not fly and c1 and c2 then c1:Disconnect() c2:Disconnect() end
+end})
+if fly then
+	local plr = game.Players.LocalPlayer
+	local torso = plr.Character.Torso
+	local flying = false
+	local deb = true
+	local ctrl = {f = 0, b = 0, l = 0, r = 0}
+	local lastctrl = {f = 0, b = 0, l = 0, r = 0}
+	local maxspeed = 50
+	local speed = 0
+
+	local function Fly()
+		local bg = Instance.new("BodyGyro", torso)
+		bg.P = 9e4
+		bg.maxTorque = Vector3.new(9e9, 9e9, 9e9)
+		bg.cframe = torso.CFrame
+		local bv = Instance.new("BodyVelocity", torso)
+		bv.velocity = Vector3.new(0,0.1,0)
+		bv.maxForce = Vector3.new(9e9, 9e9, 9e9)
+		repeat task.wait()
+			plr.Character.Humanoid.PlatformStand = true
+			if ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0 then
+				speed = speed+.5+(speed/maxspeed)
+				if speed > maxspeed then
+					speed = maxspeed
+				end
+			elseif not (ctrl.l + ctrl.r ~= 0 or ctrl.f + ctrl.b ~= 0) and speed ~= 0 then
+				speed = speed-1
+				if speed < 0 then
+					speed = 0
+				end
+			end
+			if (ctrl.l + ctrl.r) ~= 0 or (ctrl.f + ctrl.b) ~= 0 then
+				bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (ctrl.f+ctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(ctrl.l+ctrl.r,(ctrl.f+ctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
+				lastctrl = {f = ctrl.f, b = ctrl.b, l = ctrl.l, r = ctrl.r}
+			elseif (ctrl.l + ctrl.r) == 0 and (ctrl.f + ctrl.b) == 0 and speed ~= 0 then
+				bv.velocity = ((game.Workspace.CurrentCamera.CoordinateFrame.lookVector * (lastctrl.f+lastctrl.b)) + ((game.Workspace.CurrentCamera.CoordinateFrame * CFrame.new(lastctrl.l+lastctrl.r,(lastctrl.f+lastctrl.b)*.2,0).p) - game.Workspace.CurrentCamera.CoordinateFrame.p))*speed
+			else
+				bv.velocity = Vector3.new(0,0.1,0)
+			end
+			bg.cframe = game.Workspace.CurrentCamera.CoordinateFrame * CFrame.Angles(-math.rad((ctrl.f+ctrl.b)*50*speed/maxspeed),0,0)
+		until not fly or not flying
+		ctrl = {f = 0, b = 0, l = 0, r = 0}
+		lastctrl = {f = 0, b = 0, l = 0, r = 0}
+		speed = 0
+		bg:Destroy()
+		bv:Destroy()
+		plr.Character.Humanoid.PlatformStand = true
+	end
+
+	c1 = mouse.KeyDown:connect(function(key)
+		if key:lower() == "e" then
+			flying = not flying
+			if flying then spawn(Fly()) end
+		elseif key:lower() == "w" then
+			ctrl.f = 1
+		elseif key:lower() == "s" then
+			ctrl.b = -1
+		elseif key:lower() == "a" then
+			ctrl.l = -1
+		elseif key:lower() == "d" then
+			ctrl.r = 1
+		end
+	end)
+	c2 = mouse.KeyUp:connect(function(key)
+		if key:lower() == "w" then
+			ctrl.f = 0
+		elseif key:lower() == "s" then
+			ctrl.b = 0
+		elseif key:lower() == "a" then
+			ctrl.l = 0
+		elseif key:lower() == "d" then
+			ctrl.r = 0
+		end
+	end)
+end
+
 section2:toggle({name = "Noclip",def = noclip,callback = function(value)
 	noclip = value
 end})
