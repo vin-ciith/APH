@@ -795,7 +795,7 @@ function GetPartsInView()
 				end
 			end
 
-			if townPassive ~= nil and townPassive == true then
+			if townCheck ~= nil and townCheck == true then
 				if obj.Material == Enum.Material.ForceField then
 					continue
 				end
