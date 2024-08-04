@@ -284,14 +284,17 @@ else
 	print(unpack(Settings))
 	if #Settings >= 15 then
 		pcall(function()
-			if Settings[5] then
-				aimkey = Enum.KeyCode[string.split(tostring(Settings[5]), ".")[3]]
+			if Settings[5] ~= nil then
+				print(string.split(tostring(Settings[5]), ".")[3])
+				aimkey = Enum[string.split(tostring(Settings[5]), ".")[2]][string.split(tostring(Settings[5]), ".")[3]]
 			end
-			if Settings[7] then
-				zoomkey = Enum.KeyCode[string.split(tostring(Settings[7]), ".")[3]]
+			if Settings[7] ~= nil then
+				print(string.split(tostring(Settings[7]), ".")[3])
+				zoomkey = Enum[string.split(tostring(Settings[7]), ".")[2]][string.split(tostring(Settings[7]), ".")[3]]
 			end
-			if Settings[10] then
-				window.key = Enum.KeyCode[string.split(tostring(Settings[10]), ".")[3]]
+			if Settings[10] ~= nil then
+				print(string.split(tostring(Settings[10]), ".")[3])
+				window.key = Enum[string.split(tostring(Settings[10]), ".")[2]][string.split(tostring(Settings[10]), ".")[3]]
 			end
 			
 			wallCheck = Settings[1]
@@ -483,7 +486,7 @@ vsection1:toggle({name = "Add @ to Name ESP",def = false,callback = function(val
 	NameAndDisplayESP = value
 end})
 
-local fovSlider = vsection2:slider({name = "Zoom FOV (= or -)",def = fov, max = 100,min = 1,rounding = true,ticking = false,measuring = "",callback = function(value)
+local fovSlider = vsection2:slider({name = "Zoom FOV (= or -)",def = fov, max = 100,min = 5,rounding = true,ticking = false,measuring = "",callback = function(value)
 	fov = value
 	Camera.FieldOfView = (zooming and lerpfov) or 70
 end})
