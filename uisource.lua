@@ -1,4 +1,5 @@
 repeat task.wait() until game:IsLoaded()
+print(unpack(workspace:GetChildren()))
 
 local Title = "Alpha Hub UI"
 local FileNames = {"MainSave", "Configuration.json", "Drawing.json"}
@@ -15,6 +16,7 @@ local tab2 = window:page({name = "Visuals"})
 local credtab = window:page({name = "Credits"})
 
 local credsVin = credtab:section({name = "Vinciith",side = "left",size = 25})
+
 local credsAlpha = credtab:section({name = "AlphaDawg2007",side = "left",size = 25})
 
 local credsThinkers = credtab:section({name = "'hi' - Thinkers",side = "right",size = 50})
@@ -147,6 +149,82 @@ if game.GameId == 1718755273 then
 	townCheck = true
 	townSection:toggle({name = "Passive Check (Aimbot)",def = townCheck,callback = function(value)
 		townCheck = value
+	end})
+elseif game.GameId == 3104101863 then
+	local michaelSection = tab:section({name = "Michael's Zombies",side = "right",size=100})
+	local Ignore = workspace.Ignore
+
+	local toggled = false
+	michaelSection:toggle({name = "Instant Reload",def = toggled,callback = function(value)
+		toggled = value
+		spawn(function()
+			while toggled and game:GetService('RunService').Heartbeat:Wait() do
+				game:GetService("Players").LocalPlayer.Character.Remotes.Reload:FireServer()
+			end
+		end)
+	end})
+
+	local toggledPU = false
+	michaelSection:toggle({name = "Auto Powerups",def = toggledPU,callback = function(value)
+		toggledPU = value
+		spawn(function()
+			while toggledPU and game:GetService('RunService').Heartbeat:Wait() do
+				for i,v in pairs(Ignore["_Powerups"]:GetChildren()) do
+					spawn(function()
+						while v and v.Parent == Ignore["_Powerups"] and game:GetService("RunService").Heartbeat:Wait() do
+							v.Transparency = 1
+							v.Attachment.ParticleEmitter.Enabled = false
+							v.Attachment.ParticleEmitter.Rate = 0
+							v.Attachment.ParticleEmitter.Lifetime = NumberRange.new(0, 0) 
+							v.SpawnAtt.Smoke.Enabled = false
+							v.SpawnAtt.Shockwave.Enabled = false
+							v.SpawnAtt.Flare.Enabled = false
+							v.CFrame = game.Players.LocalPlayer.Character.PrimaryPart.CFrame
+						end
+					end)
+				end
+			end
+		end)
+	end})
+
+	local function booga()
+		local closestPlayer = nil
+		local shortestDistance = math.huge
+		for i, v in pairs(workspace.Ignore.Zombies:GetChildren()) do
+			if v:FindFirstChild("Humanoid") and v.Humanoid.Health ~= 0  and v:FindFirstChild("Head") then
+				local magnitude = (v.Head.Position - game.Players.LocalPlayer.Character.Head.Position).magnitude
+
+				if magnitude < shortestDistance then
+					closestPlayer = v
+					shortestDistance = magnitude
+				end
+			end
+		end
+
+		return closestPlayer
+	end
+
+	local toggledKA = false
+	michaelSection:toggle({name = "Kill Aura",def = toggledKA,callback = function(value)
+		toggledKA = value
+		spawn(function()
+			while toggledKA and wait(.1) do
+				local isZombie = false
+				for i,v in pairs(workspace.Ignore.Zombies:GetChildren()) do
+					if (game.Players.LocalPlayer.Character.PrimaryPart.Position-v.PrimaryPart.Position).Magnitude <= 10 then
+						isZombie = true
+					end
+				end
+
+				if #workspace.Ignore.Zombies:GetChildren() > 0 and isZombie then
+					local args = {
+						[1] = booga().Humanoid
+					}
+
+					game:GetService("ReplicatedStorage").Framework.Remotes.KnifeHitbox:FireServer(unpack(args))
+				end
+			end
+		end)
 	end})
 end
 
@@ -299,7 +377,7 @@ else
 				print(string.split(tostring(Settings[10]), ".")[3])
 				window.key = Enum[string.split(tostring(Settings[10]), ".")[2]][string.split(tostring(Settings[10]), ".")[3]]
 			end
-			
+
 			wallCheck = Settings[1]
 			teamCheck = Settings[2]
 			friendCheck = Settings[3]
@@ -472,7 +550,7 @@ flyTog = section2:toggle({name = "Fly (E)",def = fly,callback = function(value)
 	local lastctrl = {f = 0, b = 0, l = 0, r = 0}
 	local maxspeed = 50
 	local speed = 0
-	
+
 	local function Fly()
 		local bg = Instance.new("BodyGyro", torso)
 		bg.P = 9e4
@@ -537,7 +615,7 @@ flyTog = section2:toggle({name = "Fly (E)",def = fly,callback = function(value)
 			ctrl.r = 0
 		end
 	end)
-	
+
 	if not fly and c1 and c2 then c1:Disconnect() c2:Disconnect() end
 end})
 if fly then
@@ -749,7 +827,35 @@ end)
 
 local characters = {}
 
-function CreateChams(Character)
+function CreateChams(Character:Model)
+	if Character ~= Players.LocalPlayer.Character and Character ~= nil and Character.Parent ~= nil and game.GameId == 3104101863 then
+		if Character:FindFirstChild("Chams") then
+			Character.Chams.Enabled = tog2
+			return false
+		end
+
+		if Character:IsDescendantOf(workspace.Ignore.Zombies) then
+			local Highlight = Instance.new("Highlight")
+			Highlight.Name = "Chams"
+			Highlight.Parent = Character
+			Highlight.FillColor = enemyColor
+			Highlight.Enabled = tog2
+		elseif Character:IsDescendantOf(workspace["_WallBuys"]) or Character:IsDescendantOf(workspace["_Parts"]) then
+			local Highlight = Instance.new("Highlight")
+			Highlight.Name = "Chams"
+			Highlight.Parent = Character
+			Highlight.FillColor = friendColor
+			Highlight.Enabled = tog2
+		elseif Players:GetPlayerFromCharacter(Character) and Character:FindFirstChildOfClass("Humanoid") and Character:FindFirstChild("Head") and Character:FindFirstChild("HumanoidRootPart") then
+			local Highlight = Instance.new("Highlight")
+			Highlight.Name = "Chams"
+			Highlight.Parent = Character
+			Highlight.FillColor = teammateColor
+			Highlight.Enabled = tog2
+		end
+		return true
+	end
+
 	if Character ~= nil and Character.Parent ~= nil and Character:FindFirstChildOfClass("Humanoid") and Character:FindFirstChild("Head") and Character:FindFirstChild("HumanoidRootPart") then
 		if Character:FindFirstChild("Chams") then
 			return false
@@ -779,7 +885,7 @@ function CreateChams(Character)
 
 		local Tracer, NameView
 
-		while ManualStop == false and Highlight ~= nil and Character ~= nil and Character.Parent ~= nil and Character:FindFirstChild("Humanoid") and Character:FindFirstChild("Head") and Character:FindFirstChild("HumanoidRootPart") and Humanoid ~= nil and Humanoid.Health > 0 and task.wait(0.05) do
+		while (tog2 or tracers or tracersname) and ManualStop == false and Highlight ~= nil and Character ~= nil and Character.Parent ~= nil and Character:FindFirstChild("Humanoid") and Character:FindFirstChild("Head") and Character:FindFirstChild("HumanoidRootPart") and Humanoid ~= nil and Humanoid.Health > 0 and task.wait(0.05) do
 			Highlight.Enabled = tog2
 			if Player and Player.Parent then
 				local PlayersAmt = 0
@@ -893,17 +999,44 @@ function CreateChams(Character)
 	end
 end
 
-for i,v in pairs(Players:GetChildren()) do
-	if v.Character then table.insert(characters, v.Character) end
-	v.CharacterAdded:Connect(function(v)
-		table.insert(characters, v)
+if game.GameId == 3104101863 then
+	workspace:WaitForChild("Ignore"):WaitForChild("Zombies")
+
+	for i,v in pairs(workspace.Ignore.Zombies:GetChildren()) do
+		table.insert(characters,v)
+	end
+	workspace.Ignore.Zombies.ChildAdded:Connect(function(v)
+		table.insert(characters,v)
+	end)
+
+	workspace:WaitForChild("_WallBuys")
+	for i,v in pairs(workspace["_WallBuys"]:GetChildren()) do
+		table.insert(characters,v)
+	end
+	workspace["_WallBuys"].ChildAdded:Connect(function(v)
+		table.insert(characters,v)
+	end)
+
+	workspace:WaitForChild("_Parts")
+	for i,v in pairs(workspace["_Parts"]:GetChildren()) do
+		table.insert(characters,v)
+	end
+	workspace["_Parts"].ChildAdded:Connect(function(v)
+		table.insert(characters,v)
+	end)
+else
+	for i,v in pairs(Players:GetChildren()) do
+		if v.Character then table.insert(characters, v.Character) end
+		v.CharacterAdded:Connect(function(v)
+			table.insert(characters, v)
+		end)
+	end
+	Players.PlayerAdded:Connect(function(p)
+		p.CharacterAdded:Connect(function(v)
+			table.insert(characters, v)
+		end)
 	end)
 end
-Players.PlayerAdded:Connect(function(p)
-	p.CharacterAdded:Connect(function(v)
-		table.insert(characters, v)
-	end)
-end)
 
 function GetPartsInView()
 	local parts = {}
@@ -978,7 +1111,7 @@ local resetNC = true
 
 RunService.Heartbeat:Connect(function()
 	lerpfov = lerpfov + (fov - lerpfov) * 0.1
-	
+
 	if zooming then
 		Camera.FieldOfView = lerpfov
 	end
@@ -1074,6 +1207,14 @@ RunService.Heartbeat:Connect(function()
 		end
 	end
 
+	if game.GameId == 3104101863 then
+		for Index, Character in pairs(characters) do
+			if Character == nil then continue end
+			task.spawn(function()
+				CreateChams(Character)
+			end)
+		end
+	end
 	for Index, Player in pairs(Players:GetChildren()) do
 		if not Player.Character then continue end
 		task.spawn(function()
