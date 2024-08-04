@@ -587,7 +587,7 @@ flyTog = section2:toggle({name = "Fly (E)",def = fly,callback = function(value)
 		speed = 0
 		bg:Destroy()
 		bv:Destroy()
-		plr.Character.Humanoid.PlatformStand = true
+		plr.Character.Humanoid.PlatformStand = false
 	end
 
 	c1 = mouse.KeyDown:connect(function(key)
@@ -664,7 +664,7 @@ if fly then
 		speed = 0
 		bg:Destroy()
 		bv:Destroy()
-		plr.Character.Humanoid.PlatformStand = true
+		plr.Character.Humanoid.PlatformStand = false
 	end
 
 	c1 = mouse.KeyDown:connect(function(key)
